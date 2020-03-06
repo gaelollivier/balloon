@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
+import getConfig from 'next/config';
+
 import Head from '../components/head';
 import { NextPage } from 'next';
+
+const { publicRuntimeConfig } = getConfig();
 
 const Home: NextPage = () => {
   const [res, setRes] = useState(null);
@@ -22,7 +25,8 @@ const Home: NextPage = () => {
     <div>
       <Head title="Home" />
 
-      <div>Test! {JSON.stringify(res, null, 4)}</div>
+      <div>Config! {JSON.stringify(publicRuntimeConfig, null, 4)}</div>
+      <div>GraphQL! {JSON.stringify(res, null, 4)}</div>
     </div>
   );
 };
