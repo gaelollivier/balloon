@@ -1,0 +1,5 @@
+{
+  "env": {
+    "FROM_ENV": "value_from.json"
+  }
+}
