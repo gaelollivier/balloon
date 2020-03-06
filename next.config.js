@@ -1,5 +1,5 @@
 module.exports = {
   publicRuntimeConfig: {
-    testEnvVariable: 'SOME_ENV'
+    testEnvVariable: process.env.FROM_ENV
   }
 };
