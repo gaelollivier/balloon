@@ -1,34 +1,59 @@
-import React, { useEffect, useState } from 'react';
-import getConfig from 'next/config';
+import React from 'react';
+import Router from 'next/router';
+
+import nextCookie from 'next-cookies';
 
 import Head from '../components/head';
 import { NextPage } from 'next';
 
-const { publicRuntimeConfig } = getConfig();
+const COOKIE_NAME = 'cloud_balloon_auth';
 
-const Home: NextPage = () => {
-  const [res, setRes] = useState(null);
+const Home: NextPage<{ token?: string }> = ({ token }) => {
+  const [files, setFiles] = React.useState<Array<{ name: string }>>([]);
 
-  useEffect(() => {
-    async function graphqlTest() {
-      const res = await fetch('/api/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: '{ hello }' })
-      });
-      setRes(await res.json());
+  const handleLogout = () => {
+    document.cookie = `${COOKIE_NAME}=; path=/`;
+    Router.reload();
+  };
+
+  React.useEffect(() => {
+    if (!token) {
+      return;
     }
-    graphqlTest();
-  }, []);
+
+    const loadFiles = async () => {
+      const res = await fetch('/api/drive').then(res => res.json());
+      setFiles(res.files);
+    };
+    loadFiles();
+  }, [token]);
 
   return (
     <div>
       <Head title="Home" />
-
-      <div>Config! {JSON.stringify(publicRuntimeConfig, null, 4)}</div>
-      <div>GraphQL! {JSON.stringify(res, null, 4)}</div>
+      {token ? (
+        <>
+          Logged in! <button onClick={handleLogout}>Logout</button>
+          <ul>
+            {files.map(file => (
+              <li>{file.name}</li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <>
+          <a href="/api/auth/google">
+            <button>Login with Google</button>
+          </a>
+        </>
+      )}
     </div>
   );
+};
+
+Home.getInitialProps = ctx => {
+  const { [COOKIE_NAME]: token } = nextCookie(ctx);
+  return { token };
 };
 
 export default Home;

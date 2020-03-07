@@ -13,13 +13,21 @@
   },
   "dependencies": {
     "apollo-server-micro": "^2.11.0",
+    "cookie": "^0.4.0",
+    "dotenv": "^8.2.0",
+    "googleapis": "39",
     "graphql": "^14.6.0",
     "next": "^9.1.6",
+    "next-cookies": "^2.0.3",
+    "passport": "^0.4.1",
+    "passport-google-oauth20": "^2.0.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0"
   },
   "devDependencies": {
     "@types/node": "^13.7.7",
+    "@types/passport": "^1.0.2",
+    "@types/passport-google-oauth20": "^2.0.3",
     "@types/react": "^16.9.23",
     "now": "^17.0.4",
     "typescript": "^3.8.3"
