@@ -1,5 +1,5 @@
-import React from 'react';
 import NextHead from 'next/head';
+import React from 'react';
 
 const defaultDescription = '';
 const defaultOGURL = '';
@@ -32,6 +32,8 @@ const Head = (props: {
     <meta property="og:image" content={props.ogImage || defaultOGImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+
+    <script src="https://apis.google.com/js/api.js"></script>
   </NextHead>
 );
 

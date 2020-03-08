@@ -2,7 +2,6 @@
   "build": {
     "env": {
       "GOOGLE_CLIENT_ID": "@google_client_id",
-      "GOOGLE_CLIENT_SECRET": "@google_client_secret",
       "SERVER_URL": "https://cloud-balloon.now.sh"
     }
   }

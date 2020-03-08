@@ -1,38 +1,72 @@
 import { NextPage } from 'next';
-import nextCookie from 'next-cookies';
 import Router from 'next/router';
 import React from 'react';
 
 import Head from '../components/head';
-import { COOKIE_NAME } from '../utils/auth';
+import Login from '../components/Login';
+import LoadFiles from './LoadFiles';
+
+const REQUIRED_SCOPES = [
+  'https://www.googleapis.com/auth/userinfo.email',
+  'https://www.googleapis.com/auth/drive.metadata.readonly',
+];
+
+const loadClient = () => new Promise(resolve => gapi.load('client', resolve));
+const loadAuthApi = () =>
+  new Promise(resolve => gapi.client.load('oauth2', 'v2', resolve));
+const loadDriveApi = () =>
+  new Promise(resolve => gapi.client.load('drive', 'v3', resolve));
 
 const Home: NextPage<{ token?: string }> = ({ token }) => {
-  const handleLogout = () => {
-    document.cookie = `${COOKIE_NAME}=; path=/`;
-    Router.reload();
-  };
+  const [auth, setAuth] = React.useState<
+    'loading' | 'loggedOut' | gapi.auth2.GoogleUser
+  >('loading');
+
+  React.useEffect(() => {
+    async function init() {
+      await loadClient();
+      await loadAuthApi();
+      await loadDriveApi();
+      gapi.auth2
+        .init({
+          client_id: process.env.GOOGLE_CLIENT_ID,
+          scope: REQUIRED_SCOPES.join(' '),
+        })
+        .then(() => {
+          const authInstance = gapi.auth2.getAuthInstance();
+          if (authInstance.isSignedIn.get()) {
+            setAuth(authInstance.currentUser.get());
+          } else {
+            setAuth('loggedOut');
+          }
+        });
+    }
+    init();
+  }, []);
+
+  // const handleLogout = () => {
+  //   console.log('LOGOUT');
+  //   const authInstance = gapi.auth2.getAuthInstance();
+  //   authInstance.signOut();
+  //   Router.reload();
+  // };
 
   return (
-    <div>
+    <>
       <Head title="Home" />
-      {token ? (
+      {auth === 'loading' ? null : (
         <>
-          Logged in! <button onClick={handleLogout}>Logout</button>
-        </>
-      ) : (
-        <>
-          <a href="/api/auth/google">
-            <button>Login with Google</button>
-          </a>
+          {auth === 'loggedOut' ? (
+            <Login onLogin={user => setAuth(user)} />
+          ) : (
+            <>
+              <LoadFiles />
+            </>
+          )}
         </>
       )}
-    </div>
+    </>
   );
-};
-
-Home.getInitialProps = ctx => {
-  const { [COOKIE_NAME]: token } = nextCookie(ctx);
-  return { token };
 };
 
 export default Home;
