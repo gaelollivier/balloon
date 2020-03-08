@@ -1,32 +1,16 @@
-import React from 'react';
-import Router from 'next/router';
-
+import { NextPage } from 'next';
 import nextCookie from 'next-cookies';
+import Router from 'next/router';
+import React from 'react';
 
 import Head from '../components/head';
-import { NextPage } from 'next';
-
-const COOKIE_NAME = 'cloud_balloon_auth';
+import { COOKIE_NAME } from '../utils/auth';
 
 const Home: NextPage<{ token?: string }> = ({ token }) => {
-  const [files, setFiles] = React.useState<Array<{ name: string }>>([]);
-
   const handleLogout = () => {
     document.cookie = `${COOKIE_NAME}=; path=/`;
     Router.reload();
   };
-
-  React.useEffect(() => {
-    if (!token) {
-      return;
-    }
-
-    const loadFiles = async () => {
-      const res = await fetch('/api/drive').then(res => res.json());
-      setFiles(res.files);
-    };
-    loadFiles();
-  }, [token]);
 
   return (
     <div>
@@ -34,11 +18,6 @@ const Home: NextPage<{ token?: string }> = ({ token }) => {
       {token ? (
         <>
           Logged in! <button onClick={handleLogout}>Logout</button>
-          <ul>
-            {files.map(file => (
-              <li>{file.name}</li>
-            ))}
-          </ul>
         </>
       ) : (
         <>
