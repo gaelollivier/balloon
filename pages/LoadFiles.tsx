@@ -1,6 +1,8 @@
 import Dexie from 'dexie';
 import React from 'react';
 
+const FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder';
+
 interface File {
   id: string;
   name: string;
@@ -22,11 +24,60 @@ class FileDatabase extends Dexie {
 }
 
 const db = new FileDatabase();
+// For debug purposes, expose to global scope
 (global as any).db = db;
+
+async function deepUpdateFolderSize({
+  id,
+  isRoot,
+  path = '/Root',
+}: {
+  id: string;
+  isRoot?: boolean;
+  path?: string;
+}): Promise<number> {
+  // console.log(path);
+
+  const children = await db.files
+    .where('parent')
+    .equals(id)
+    .toArray();
+
+  const childrenWithSize = await Promise.all(
+    children.map(async child => {
+      if (child.mimeType === FOLDER_MIME_TYPE) {
+        return {
+          child,
+          size: await deepUpdateFolderSize({
+            id: child.id,
+            path: `${path}/${child.name}`,
+          }),
+        };
+      } else {
+        return {
+          child,
+          size: child.size,
+        };
+      }
+    })
+  );
+
+  const calculatedSize = childrenWithSize.reduce(
+    (sum, { size }) => sum + size,
+    0
+  );
+
+  if (!isRoot) {
+    await db.files.update(id, { calculatedSize });
+  }
+
+  return calculatedSize;
+}
 
 const LoadFiles = () => {
   const handleLoad = async () => {
-    return;
+    // return;
+    console.time('LoadFiles');
     let total = { count: 0, size: 0 };
     let pageToken: string | undefined;
 
@@ -38,7 +89,8 @@ const LoadFiles = () => {
         result: { files, nextPageToken },
       } = await gapi.client.drive.files.list({
         pageSize: 1000,
-        fields: 'nextPageToken, files(id,size,name,mimeType,parents,ownedByMe)',
+        fields:
+          'nextPageToken, files(id,size,name,mimeType,parents,ownedByMe,trashed)',
         pageToken,
       });
 
@@ -46,7 +98,7 @@ const LoadFiles = () => {
 
       const filesInput = (files || [])
         // Keep only files owned by current user
-        .filter(({ ownedByMe }) => ownedByMe)
+        .filter(({ ownedByMe, trashed }) => ownedByMe && !trashed)
         .map(
           ({
             id = '',
@@ -65,7 +117,7 @@ const LoadFiles = () => {
 
       if (!filesInput.length) {
         console.log('DONE!');
-        return;
+        break;
       }
 
       await db.files.bulkAdd(filesInput);
@@ -79,22 +131,23 @@ const LoadFiles = () => {
 
       if (!pageToken) {
         console.log('DONE 2!');
-        return;
+        break;
       }
     }
+
+    console.timeEnd('LoadFiles');
   };
 
   const handleTest = async () => {
-    const totalFiles = await db.files.count();
-    let offset = 0;
-    while (offset < totalFiles) {
-      const files = await db.files
-        .offset(offset)
-        .limit(1000)
-        .toArray();
-      console.log(totalFiles, offset);
-      offset += files.length;
+    const {
+      result: { id: rootFolderId },
+    } = await gapi.client.drive.files.get({ fileId: 'root' });
+    if (!rootFolderId) {
+      console.error('Cannot find root folder');
+      return;
     }
+
+    await deepUpdateFolderSize({ id: rootFolderId, isRoot: true });
   };
 
   return (
