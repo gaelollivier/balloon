@@ -5,6 +5,7 @@ import React from 'react';
 import Head from '../components/head';
 import Login from '../components/Login';
 import LoadFiles from './LoadFiles';
+import Visualize from './Visualize';
 
 const REQUIRED_SCOPES = [
   'https://www.googleapis.com/auth/userinfo.email',
@@ -60,7 +61,8 @@ const Home: NextPage<{ token?: string }> = ({ token }) => {
             <Login onLogin={user => setAuth(user)} />
           ) : (
             <>
-              <LoadFiles />
+              {/* <LoadFiles /> */}
+              <Visualize />
             </>
           )}
         </>

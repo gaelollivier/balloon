@@ -1,31 +1,7 @@
-import Dexie from 'dexie';
 import React from 'react';
 
-const FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder';
-
-interface File {
-  id: string;
-  name: string;
-  mimeType: string;
-  size: number;
-  parent: string | null;
-}
-
-class FileDatabase extends Dexie {
-  public files: Dexie.Table<File, string>;
-
-  public constructor() {
-    super('FileDatabase');
-    this.version(1).stores({
-      files: 'id,name,mimeType,size,parent',
-    });
-    this.files = this.table('files');
-  }
-}
-
-const db = new FileDatabase();
-// For debug purposes, expose to global scope
-(global as any).db = db;
+import { db } from '../utils/db';
+import { FOLDER_MIME_TYPE } from '../utils/drive';
 
 async function deepUpdateFolderSize({
   id,
