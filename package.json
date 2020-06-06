@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@types/lodash": "^4.14.149",
-    "apollo-server-micro": "^2.11.0",
+    "apollo-server-micro": "^2.14.2",
     "cookie": "^0.4.0",
     "dexie": "^2.0.4",
     "dotenv": "^8.2.0",
