@@ -19,7 +19,7 @@
     "@types/lodash": "^4.14.149",
     "apollo-server-micro": "^2.11.0",
     "cookie": "^0.4.0",
-    "dexie": "^2.0.4",
+    "dexie": "^3.2.2",
     "dotenv": "^8.2.0",
     "googleapis": "39",
     "graphql": "^14.6.0",
